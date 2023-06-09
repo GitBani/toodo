@@ -6,14 +6,12 @@
 /*
     TODO:
     - fix edge cases
-        - remove last task
-        - "please enter a number between 1 and 0"
-        - calling save when list is empty
-        - swapping when only 1 task
         - look for the others that I am certainly missing
         - errors involving the json file (doesn't exist, messed up format, etc)
+    - clean up save calls
+    - deal with unexpected user input
     - look over method of dealing with trailing comma inconsistencies
-    - toodo list -u & -a, strikethru text
+    - toodo list -a & -c, strikethru text
     - help function
     - make the print list function look better
     - ability to change file path
@@ -46,10 +44,10 @@ typedef struct Task_List {
 // user operations
 void help();
 void add_task(Task_List *tasks, const char *new_task_msg);
-void check(Task_List *tasks, int task_number);
-void uncheck(Task_List *tasks, int task_number);
-void remove_task(Task_List *tasks, int task_number);
-void clear(Task_List *tasks, FILE* fp);
+void check_task(Task_List *tasks, int check_task_index);
+void uncheck_task(Task_List *tasks, int uncheck_task_index);
+void remove_task(Task_List *tasks, int removal_index);
+void clear_list(Task_List *tasks);
 void print_tasks(Task_List tasks);
 void swap(Task_List *tasks, int task1_number, int task2_number);
 
@@ -94,19 +92,19 @@ int main(int argc, const char *argv[]) {
 
     } else if (strcmp("check", argv[1]) == 0) {
         if (argc >= 3) {
-            check(&tasks, atoi(argv[2]));
+            check_task(&tasks, atoi(argv[2]));
         }
         else {
-            check(&tasks, CHOOSE_LATER);
+            check_task(&tasks, CHOOSE_LATER);
         }
         save_data(tasks);
 
     } else if (strcmp("uncheck", argv[1]) == 0) {
         if (argc >= 3) {
-            uncheck(&tasks, atoi(argv[2]));
+            uncheck_task(&tasks, atoi(argv[2]));
         }
         else {
-            uncheck(&tasks, CHOOSE_LATER);
+            uncheck_task(&tasks, CHOOSE_LATER);
         }
         save_data(tasks);
 
@@ -120,7 +118,7 @@ int main(int argc, const char *argv[]) {
         save_data(tasks);
 
     } else if (strcmp("clear", argv[1]) == 0) {
-        clear(&tasks, fp);
+        clear_list(&tasks);
 
     } else if (strcmp("swap", argv[1]) == 0) {
         if (argc >= 4)
@@ -147,8 +145,8 @@ void help() {
 
 void add_task(Task_List *tasks, const char* new_task_msg) {
     if (tasks->num_tasks >= MAX_TASKS) {
-        printf("Your list is full. Try getting something done.\n");
-        return;
+        printf("Your list is full. Try getting something done.\n\n");
+        exit(EXIT_FAILURE);
     }
 
     Task new_task;
@@ -157,80 +155,95 @@ void add_task(Task_List *tasks, const char* new_task_msg) {
     tasks->list[tasks->num_tasks++] = new_task;
 }
 
-void check(Task_List *tasks, int task_number) {
-    if (task_number < 0 || task_number > tasks->num_tasks) {
-        printf("Please enter a number between 1 and %d.\n\n", tasks->num_tasks);
-        return;
+void check_task(Task_List *tasks, int check_task_index) {
+    if (tasks->num_tasks == 0) {
+        printf("You have no tasks on you list to check off.\n\n");
+        exit(EXIT_FAILURE);
     }
 
-    if (task_number == CHOOSE_LATER) {
+    if (check_task_index < 0 || check_task_index > tasks->num_tasks) {
+        printf("Please enter a number between 1 and %d.\n\n", tasks->num_tasks);
+        exit(EXIT_FAILURE);
+    }
+
+    if (check_task_index == CHOOSE_LATER) {
         print_tasks(*tasks);
 
         printf("Enter the number of the task you have completed (enter 0 to cancel): ");
-        scanf("%d", &task_number);
-        while (task_number < 0 || task_number > tasks->num_tasks) {
+        scanf("%d", &check_task_index);
+        while (check_task_index < 0 || check_task_index > tasks->num_tasks) {
             printf("Please enter a number between 1 and %d, or 0 to cancel: ", tasks->num_tasks);
-            scanf("%d", &task_number);
+            scanf("%d", &check_task_index);
         }
-        if (task_number == 0)
+        if (check_task_index == 0)
             return;
     }
 
-    tasks->list[task_number - 1].completed = true;
+    tasks->list[check_task_index - 1].completed = true;
 }
 
-void uncheck(Task_List *tasks, int task_number) {
-    if (task_number < 0 || task_number > tasks->num_tasks) {
-        printf("Please enter a number between 1 and %d.\n\n", tasks->num_tasks);
-        return;
+void uncheck_task(Task_List *tasks, int uncheck_task_index) {
+    if (tasks->num_tasks == 0) {
+        printf("You have no tasks on you list to uncheck.\n\n");
+        exit(EXIT_FAILURE);
     }
 
-    if (task_number == CHOOSE_LATER) {
+    if (uncheck_task_index < 0 || uncheck_task_index > tasks->num_tasks) {
+        printf("Please enter a number between 1 and %d.\n\n", tasks->num_tasks);
+        exit(EXIT_FAILURE);
+    }
+
+    if (uncheck_task_index == CHOOSE_LATER) {
         print_tasks(*tasks);
 
         printf("Enter the number of the task you want to uncheck (enter 0 to cancel): ");
-        scanf("%d", &task_number);
-        while (task_number < 0 || task_number > tasks->num_tasks) {
+        scanf("%d", &uncheck_task_index);
+        while (uncheck_task_index < 0 || uncheck_task_index > tasks->num_tasks) {
             printf("Please enter a number between 1 and %d, or 0 to cancel: ", tasks->num_tasks);
-            scanf("%d", &task_number);
+            scanf("%d", &uncheck_task_index);
         }
-        if (task_number == 0)
+        if (uncheck_task_index == 0)
             return;
     }
 
-    tasks->list[task_number - 1].completed = false;
+    tasks->list[uncheck_task_index - 1].completed = false;
 }
 
-void remove_task(Task_List *tasks, int task_number) {
-    if (task_number < 0 || task_number > tasks->num_tasks) {
-        printf("Please enter a number between 1 and %d.\n\n", tasks->num_tasks);
-        return;
+void remove_task(Task_List *tasks, int removal_index) {
+    if (tasks->num_tasks == 0) {
+        printf("You have no tasks on your list to remove.\n\n");
+        exit(EXIT_FAILURE);
     }
 
-    if (task_number == CHOOSE_LATER) {
+    if (removal_index < 0 || removal_index > tasks->num_tasks) {
+        printf("Please enter a number between 1 and %d.\n\n", tasks->num_tasks);
+        exit(EXIT_FAILURE);
+    }
+
+    if (removal_index == CHOOSE_LATER) {
         print_tasks(*tasks);
 
         printf("Enter the number of the task you would like to remove (enter 0 to cancel): ");
-        scanf("%d", &task_number);
-        while (task_number < 0 || task_number > tasks->num_tasks) {
+        scanf("%d", &removal_index);
+        while (removal_index < 0 || removal_index > tasks->num_tasks) {
             printf("Please enter a number between 1 and %d, or 0 to cancel: ", tasks->num_tasks);
-            scanf("%d", &task_number);
+            scanf("%d", &removal_index);
         }
-        if (task_number == 0)
+        if (removal_index == 0)
             return;
     }
 
-    for (int i = task_number - 1; i < tasks->num_tasks - 1; i++) {
-        strcpy(tasks->list[i].description, tasks->list[i + 1].description);
+    for (int i = removal_index - 1; i < tasks->num_tasks - 1; i++) {
+        // strcpy(tasks->list[i].description, tasks->list[i + 1].description);
+        // tasks->list[i]
+        tasks->list[i] = tasks->list[i + 1];
     }
     tasks->num_tasks--;
 }
 
-void clear(Task_List *tasks, FILE* fp) {
+void clear_list(Task_List *tasks) {
     tasks->num_tasks = 0;
-
-    fopen(FILE_NAME, "w");
-    fclose(fp);
+    fclose(fopen(FILE_NAME, "w"));
 }
 
 void print_tasks(Task_List tasks) {
@@ -242,9 +255,14 @@ void print_tasks(Task_List tasks) {
 }
 
 void swap(Task_List *tasks, int task1_number, int task2_number) {
+    if (tasks->num_tasks <= 1) {
+        printf("You don't have enough tasks on you list to swap anything around.\n\n");
+        exit(EXIT_FAILURE);
+    }
+
     if (task1_number < 0 || task2_number < 0 || task1_number > tasks->num_tasks || task2_number > tasks->num_tasks) {
         printf("Please enter two numbers between 1 and %d.\n\n", tasks->num_tasks);
-        return;
+        exit(EXIT_FAILURE);
     }
 
     if (task1_number == CHOOSE_LATER && task2_number == CHOOSE_LATER) {
@@ -305,6 +323,11 @@ void restore_data(FILE* fp, Task_List *tasks) {
 }
 
 void save_data(Task_List tasks) {
+    if (tasks.num_tasks == 0) {
+        clear_list(&tasks);
+        return;
+    }
+
     FILE* fp = fopen(FILE_NAME, "w");
 
     fseek(fp, 0, SEEK_SET);
