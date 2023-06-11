@@ -8,10 +8,8 @@
     - fix edge cases
         - look for the others that I am certainly missing
         - errors involving the json file (doesn't exist, messed up format, etc)
-    - clean up save calls
     - deal with unexpected user input
     - look over method of dealing with trailing comma inconsistencies
-    - implement help function
     - make the print list function look better
     - ability to change file path
 */
@@ -25,7 +23,7 @@
 #define MAX_TASKS 25
 #define CHOOSE_LATER 0 // argument to function if user did not include program parameter
 
-const char* FILE_NAME = "tasks.json";
+const char* FILE_NAME = "/home/bani/code/c/toodo_app/tasks.json";
 const char* DATA_FORMAT_LINE_OUT = "\t{\n\t\t\"Completed\": %d,\n\t\t\"Description\": \"%s\"\n\t},\n";
 const char* DATA_FORMAT_LINE_IN = "\t{\n\t\t\"Completed\": %d,\n\t\t\"Description\": \"%[^\"]\"\n\t}";
 
@@ -78,9 +76,11 @@ int main(int argc, const char *argv[]) {
 
     } else if (strcmp(argv[1], "list") == 0) {
         print_tasks(tasks);
+        return 0;
         
     } else if (strcmp("-h", argv[1]) == 0) {
         help();
+        return 0;
 
     } else if (strcmp("add", argv[1]) == 0) {
         if (argc > 3) {
@@ -91,7 +91,6 @@ int main(int argc, const char *argv[]) {
             return 1;
         }
         add_task(&tasks, argv[2]);
-        save_data(tasks);
 
     } else if (strcmp("check", argv[1]) == 0) {
         if (argc >= 3) {
@@ -100,7 +99,6 @@ int main(int argc, const char *argv[]) {
         else {
             check_task(&tasks, CHOOSE_LATER);
         }
-        save_data(tasks);
 
     } else if (strcmp("uncheck", argv[1]) == 0) {
         if (argc >= 3) {
@@ -109,7 +107,6 @@ int main(int argc, const char *argv[]) {
         else {
             uncheck_task(&tasks, CHOOSE_LATER);
         }
-        save_data(tasks);
 
     } else if (strcmp("remove", argv[1]) == 0) {
         if (argc >= 3) {
@@ -118,7 +115,6 @@ int main(int argc, const char *argv[]) {
         else {
             remove_task(&tasks, CHOOSE_LATER);
         }
-        save_data(tasks);
 
     } else if (strcmp("clear", argv[1]) == 0) {
         clear_list(&tasks);
@@ -130,12 +126,13 @@ int main(int argc, const char *argv[]) {
             swap(&tasks, atoi(argv[2]), CHOOSE_LATER);
         else
             swap(&tasks, CHOOSE_LATER, CHOOSE_LATER);
-        save_data(tasks);
 
     } else {
-        printf("Invalid arguments. Try \"todo -h\" for help.\n");
+        printf("Invalid arguments. Try \"todo -h\" for help.\n\n");
         return 1;
     }
+
+    save_data(tasks);
 
     return 0;
 }
@@ -370,4 +367,5 @@ void save_data(Task_List tasks) {
     fprintf(fp, "]\n");
 
     fclose(fp);
+    print_tasks(tasks);
 }
