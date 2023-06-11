@@ -94,7 +94,12 @@ int main(int argc, const char *argv[]) {
 
     } else if (strcmp("check", argv[1]) == 0) {
         if (argc >= 3) {
-            check_task(&tasks, atoi(argv[2]));
+            if (strcmp("-all", argv[2]) == 0) {
+                for (int i = 1; i <= tasks.num_tasks; i++) {
+                    check_task(&tasks, i);
+                }
+            } else
+                check_task(&tasks, atoi(argv[2]));
         }
         else {
             check_task(&tasks, CHOOSE_LATER);
@@ -102,7 +107,12 @@ int main(int argc, const char *argv[]) {
 
     } else if (strcmp("uncheck", argv[1]) == 0) {
         if (argc >= 3) {
-            uncheck_task(&tasks, atoi(argv[2]));
+            if (strcmp("-all", argv[2]) == 0) {
+                for (int i = 1; i <= tasks.num_tasks; i++) {
+                    uncheck_task(&tasks, i);
+                }
+            } else 
+                uncheck_task(&tasks, atoi(argv[2]));
         }
         else {
             uncheck_task(&tasks, CHOOSE_LATER);
