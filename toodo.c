@@ -11,8 +11,7 @@
     - clean up save calls
     - deal with unexpected user input
     - look over method of dealing with trailing comma inconsistencies
-    - toodo list -a & -c, strikethru text
-    - help function
+    - implement help function
     - make the print list function look better
     - ability to change file path
 */
@@ -63,7 +62,7 @@ int main(int argc, const char *argv[]) {
 
     fp = fopen(FILE_NAME, "r");
     if (!fp) {
-        printf("Failed to open %s file.\n", FILE_NAME);
+        printf("Failed to open %s file.\n\n", FILE_NAME);
         return 1; 
     }
 
@@ -247,9 +246,18 @@ void clear_list(Task_List *tasks) {
 }
 
 void print_tasks(Task_List tasks) {
-    // make it look better
-    for(int i = 0; i < tasks.num_tasks; i++)
-        printf("%d: %s\n", i + 1, tasks.list[i].description);
+    printf("###############\n");
+    printf("#  TODO LIST  #\n");
+    printf("###############\n");
+
+    if (tasks.num_tasks == 0) {
+        printf("\nNo current tasks!\n\n");
+        return;
+    }
+
+    for(int i = 0; i < tasks.num_tasks; i++) {
+        printf("(%d) %s %s\n", i + 1, (tasks.list[i].completed) ? "\u221A" : "\u25A1", tasks.list[i].description);
+    }
     
     printf("\n");
 }
