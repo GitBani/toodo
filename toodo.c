@@ -72,9 +72,13 @@ int main(int argc, const char *argv[]) {
     fclose(fp);
 
     // check which command is being executed
-    if (argc == 1 || strcmp(argv[1], "list") == 0) {
-        print_tasks(tasks);
+    if (argc == 1) {
+        printf("No arguments provided. Try \"toodo -h\" for help.\n\n");
+        return 1;
 
+    } else if (strcmp(argv[1], "list") == 0) {
+        print_tasks(tasks);
+        
     } else if (strcmp("-h", argv[1]) == 0) {
         help();
 
@@ -139,10 +143,23 @@ int main(int argc, const char *argv[]) {
 // Function Definitions
 // user operations
 void help() {
-
+    printf("Toodo is a todo list command line tool. These are the supported operations:\n\n");
+    printf("* list                        - prints your list.\n");
+    printf("* add \"some task description\" - adds a task to your list with the given description. Be sure to wrap the description in double quotes.\n");
+    printf("* check <n>                   - marks the n'th task on your list as completed.\n");
+    printf("* uncheck <n>                 - unmarks the n'th task on your list as completed.\n");
+    printf("* remove <n>                  - removes the n'th task on your list.\n");
+    printf("* clear                       - clears all tasks on your list.\n");
+    printf("* swap <n> <m>                - swaps the n'th and m'th tasks on your list.\n");
+    printf("\n");
 }
 
 void add_task(Task_List *tasks, const char* new_task_msg) {
+    if (strlen(new_task_msg) > DESC_LEN) {
+        printf("Your task description is too long. Task was not added.\n\n");
+        exit(EXIT_FAILURE);
+    }
+
     if (tasks->num_tasks >= MAX_TASKS) {
         printf("Your list is full. Try getting something done.\n\n");
         exit(EXIT_FAILURE);
