@@ -1,0 +1,19 @@
+[
+	4,
+	{
+		"Completed": 0,
+		"Description": "8:00 am - 11:00 am: Work on a project"
+	},
+	{
+		"Completed": 0,
+		"Description": "11:30 am - 2:30 pm: Read C++"
+	},
+	{
+		"Completed": 0,
+		"Description": "5:00 pm - 7:00 pm: Read beej"
+	},
+	{
+		"Completed": 0,
+		"Description": "8:00 pm - 9:00 pm: Leetcode"
+	}
+]
