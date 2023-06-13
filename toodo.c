@@ -71,14 +71,14 @@ int main(int argc, const char *argv[]) {
 
     // check which command is being executed
     if (argc == 1) {
-        printf("No arguments provided. Try \"toodo --h\" for help.\n\n");
+        printf("No arguments provided. Try \"toodo -h\" for help.\n\n");
         return 1;
 
     } else if (strcmp(argv[1], "list") == 0) {
         print_tasks(tasks);
         return 0;
         
-    } else if (strcmp("--h", argv[1]) == 0) {
+    } else if (strcmp("-h", argv[1]) == 0 || strcmp("--help", argv[1]) == 0) {
         help();
         return 0;
 
@@ -138,7 +138,7 @@ int main(int argc, const char *argv[]) {
             swap(&tasks, CHOOSE_LATER, CHOOSE_LATER);
 
     } else {
-        printf("Invalid arguments. Try \"todo --h\" for help.\n\n");
+        printf("Invalid arguments. Try \"todo -h\" for help.\n\n");
         return 1;
     }
 
