@@ -9,8 +9,6 @@
         - look for the others that I am certainly missing
         - errors involving the json file (doesn't exist, messed up format, etc)
     - deal with unexpected user input
-    - look over method of dealing with trailing comma inconsistencies
-    - make the print list function look better
     - ability to change file path
 */
 
@@ -47,6 +45,7 @@ void remove_task(Task_List *tasks, int removal_index);
 void clear_list(Task_List *tasks);
 void print_tasks(Task_List tasks);
 void swap(Task_List *tasks, int task1_number, int task2_number);
+void move(Task_List *tasks, int task_to_move, int new_position);
 
 // program operations
 int file_size(FILE* fp);
@@ -137,6 +136,14 @@ int main(int argc, const char *argv[]) {
         else
             swap(&tasks, CHOOSE_LATER, CHOOSE_LATER);
 
+    } else if (strcmp("move", argv[1]) == 0) {
+        if (argc >= 4) {
+            move(&tasks, atoi(argv[2]), atoi(argv[3]));
+        } else if (argc == 3) {
+            move(&tasks, atoi(argv[2]), CHOOSE_LATER);
+        } else {
+            move(&tasks, CHOOSE_LATER, CHOOSE_LATER);
+        }
     } else {
         printf("Invalid arguments. Try \"todo -h\" for help.\n\n");
         return 1;
@@ -158,6 +165,7 @@ void help() {
     printf("* remove <n>                  - removes the n'th task on your list.\n");
     printf("* clear                       - clears all tasks on your list.\n");
     printf("* swap <n> <m>                - swaps the n'th and m'th tasks on your list.\n");
+    printf("* move <n> <m>                - moves the n'th task to the m'th postion, the other tasks are shifted accordingly.\n");
     printf("\n");
 }
 
@@ -254,6 +262,7 @@ void remove_task(Task_List *tasks, int removal_index) {
         }
         if (removal_index == 0)
             return;
+        printf("\n");
     }
 
     for (int i = removal_index - 1; i < tasks->num_tasks - 1; i++) {
@@ -313,6 +322,7 @@ void swap(Task_List *tasks, int task1_number, int task2_number) {
             printf("Please enter a number between 1 and %d: ", tasks->num_tasks);
             scanf("%d", &task2_number);
         }
+        printf("\n");
 
     } else if (task2_number == CHOOSE_LATER) {
         print_tasks(*tasks);
@@ -323,12 +333,74 @@ void swap(Task_List *tasks, int task1_number, int task2_number) {
             printf("Please enter a number between 1 and %d: ", tasks->num_tasks);
             scanf("%d", &task2_number);
         }
+        printf("\n");
     }
 
     // actual swap logic (；・∀・)
     Task temp = tasks->list[task1_number - 1];
     tasks->list[task1_number - 1] = tasks->list[task2_number - 1];
     tasks->list[task2_number - 1] = temp;
+}
+
+void move(Task_List *tasks, int task_to_move, int new_position) {
+    if (tasks->num_tasks <= 1) {
+        printf("You don't have enough tasks on you list to reorder it.\n\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (task_to_move < 0 || new_position < 0 || task_to_move > tasks->num_tasks || new_position > tasks->num_tasks) {
+        printf("Please enter two numbers between 1 and %d.\n\n", tasks->num_tasks);
+        exit(EXIT_FAILURE);
+    }
+
+    if (task_to_move == CHOOSE_LATER && new_position == CHOOSE_LATER) {
+        print_tasks(*tasks);
+
+        printf("Enter the number of the task you'd like to move: ");
+        scanf("%d", &task_to_move);
+        while (task_to_move <= 0 || task_to_move > tasks->num_tasks) {
+            printf("Please enter a number between 1 and %d: ", tasks->num_tasks);
+            scanf("%d", &task_to_move);
+        }
+
+        printf("Now enter the postion you'd like the task to be moved to: ");
+        scanf("%d", &new_position);
+        while (new_position <= 0 || new_position > tasks->num_tasks) {
+            printf("Please enter a number between 1 and %d: ", tasks->num_tasks);
+            scanf("%d", &new_position);
+        }
+        printf("\n");
+
+    } else if (new_position == CHOOSE_LATER) {
+        print_tasks(*tasks);
+
+        printf("Enter the postion you'd like to move task %d to: ", task_to_move);
+        scanf("%d", &new_position);
+        while (new_position <= 0 || new_position > tasks->num_tasks) {
+            printf("Please enter a number between 1 and %d: ", tasks->num_tasks);
+            scanf("%d", &new_position);
+        }
+        printf("\n");
+    }
+
+    if (task_to_move == new_position) {
+        printf("Same postion, no changes were made.\n");
+        return;
+    }
+
+    task_to_move--; new_position--;
+
+    Task temp = tasks->list[task_to_move];
+    if (task_to_move > new_position) {
+        for (int i = task_to_move; i > new_position; i--) {
+            tasks->list[i] = tasks->list[i - 1];
+        }
+    } else {
+        for (int i = task_to_move; i < new_position; i++) {
+            tasks->list[i] = tasks->list[i + 1];
+        }
+    }
+    tasks->list[new_position] = temp;
 }
 
 // program operations
