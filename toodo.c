@@ -279,10 +279,6 @@ void clear_list(Task_List *tasks) {
 }
 
 void print_tasks(Task_List tasks) {
-    printf("###############\n");
-    printf("#  TODO LIST  #\n");
-    printf("###############\n");
-
     if (tasks.num_tasks == 0) {
         printf("\nNo current tasks!\n\n");
         return;
